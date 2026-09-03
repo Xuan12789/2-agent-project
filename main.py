@@ -784,13 +784,6 @@ async def api_read_notice(request: Request, nid:int=Form("")):
     sess_user = request.session.get("user")
     if not sess_user:
         return RedirectResponse("/login",303)
-    user_text = user_text.strip()
-    if not user_text:
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "user": sess_user,
-            "err": "请输入需要核验的文本！"
-        })
     uid = sess_user["id"]
     conn = sqlite3.connect("user.db", check_same_thread=False)
     cur = conn.cursor()
@@ -800,7 +793,7 @@ async def api_read_notice(request: Request, nid:int=Form("")):
     return RedirectResponse("/user_center",303)
 
 @app.post("/check")
-async def check_text(request: Request, user_text: str = Form(...), check_type: str = Form(...)):
+async def check_text(request: Request, user_text: str = Form(""), check_type: str = Form(...)):
     sess_user = request.session.get("user")
     if not sess_user:
         return RedirectResponse("/login", 303)

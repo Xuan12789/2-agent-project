@@ -300,7 +300,6 @@
         </div>
         {% endif %}
     </div>
-
     <!--导出PDF弹窗 -->
     <div id="exportModal" class="modal-wrap">
         <div class="modal-box">
@@ -319,17 +318,87 @@
             </div>
         </div>
     </div>
-
 <script>
-    function checkSubmit(formDom){
+function checkSubmit(formDom){
     const ta = formDom.querySelector("textarea[name='user_text']");
     const val = ta.value.trim();
     if(!val){
         alert("请输入需要核验的文本！");
-        return false; //阻止表单提交
+        return false;
     }
     return true;
 }
+
+// =====朗读播放暂停继续 新增代码=====
+let speechUtter = null;
+const speechSynthesis = window.speechSynthesis;
+let lastReadText = "";
+let uploadReadText = "";
+let uploadOriginText = "";
+let uploadFactText = "";
+
+function speakResult(){
+    if (!speechSynthesis) {
+        alert("你的浏览器不支持语音朗读");
+        return;
+    }
+    const btn = document.getElementById("readVoiceBtn");
+    if(!btn) return;
+    const textContent = document.querySelector(".result-area").innerText;
+
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
+        speechSynthesis.pause();
+        btn.innerText = "继续朗读核验内容";
+        return;
+    }
+    if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+        btn.innerText = "暂停朗读核验内容";
+        return;
+    }
+    speechSynthesis.cancel();
+    speechUtter = new SpeechSynthesisUtterance(textContent);
+    speechUtter.lang = "zh-CN";
+    speechUtter.rate = 0.95;
+    speechUtter.onend = () => {
+        btn.innerText = "朗读核验内容";
+        speechUtter = null;
+    };
+    speechSynthesis.speak(speechUtter);
+    btn.innerText = "暂停朗读核验内容";
+}
+
+function speakUploadResult(){
+    if (!speechSynthesis) {
+        alert("你的浏览器不支持语音朗读");
+        return;
+    }
+    const btn = document.getElementById("readVoiceBtnUpload");
+    if(!btn) return;
+
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
+        speechSynthesis.pause();
+        btn.innerText = "继续朗读核验内容";
+        return;
+    }
+    if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+        btn.innerText = "暂停朗读核验内容";
+        return;
+    }
+    speechSynthesis.cancel();
+    speechUtter = new SpeechSynthesisUtterance(uploadReadText);
+    speechUtter.lang = "zh-CN";
+    speechUtter.rate = 0.95;
+    speechUtter.onend = () => {
+        btn.innerText = "朗读核验内容";
+        speechUtter = null;
+    };
+    speechSynthesis.speak(speechUtter);
+    btn.innerText = "暂停朗读核验内容";
+}
+// =====朗读代码结束=====
+
 //表单提交拿到的后台渲染变量
 {% if res_check_type %}
 const formCheckType = "{{ res_check_type }}";
@@ -342,35 +411,6 @@ const formInputText = "";
 const formFact = "";
 const formBias = "";
 {% endif %}
-let lastReadText = "";
-let uploadReadText = "";
-let uploadOriginText = "";
-let uploadFactText = "";
-
-//表单提交-朗读
-function speakResult(){
-    if(!window.speechSynthesis){
-        alert("你的浏览器不支持语音朗读");
-        return;
-    }
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(document.querySelector(".result-area").innerText);
-    utter.lang = "zh-CN";
-    utter.rate = 0.95;
-    window.speechSynthesis.speak(utter);
-}
-//上传文件-朗读
-function speakUploadResult(){
-    if(!window.speechSynthesis){
-        alert("你的浏览器不支持语音朗读");
-        return;
-    }
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(uploadReadText);
-    utter.lang = "zh-CN";
-    utter.rate = 0.95;
-    window.speechSynthesis.speak(utter);
-}
 
 //【普通人工核验 正常工单 normal】
 async function openChatFromForm(){
@@ -387,7 +427,6 @@ async function openChatFromForm(){
         window.open(`/user_chat?session_id=${d.session_id}`,"_blank");
     }
 }
-
 //【人工申诉通道 appeal 申诉工单】
 async function openAppeal(){
     let fd=new FormData();
@@ -403,7 +442,6 @@ async function openAppeal(){
         window.open(`/user_chat?session_id=${d.session_id}`,"_blank");
     }
 }
-
 //导出维权PDF弹窗
 function openExportPdfModal(){
     document.getElementById("exportModal").style.display="block";
@@ -437,7 +475,6 @@ async function submitExportPdf(){
         alert("导出失败");
     }
 }
-
 async function uploadFile(fileDomId, ctype, mode){
     const fileInput = document.getElementById(fileDomId);
     const file = fileInput.files[0];
@@ -517,7 +554,6 @@ async function uploadFile(fileDomId, ctype, mode){
             }
             resDom.after(btn1);
         }
-
         let btn2 = document.createElement("button");
         btn2.className="btn-blue";
         btn2.style.marginLeft="10px";
@@ -537,7 +573,6 @@ async function uploadFile(fileDomId, ctype, mode){
             }
         }
         resDom.after(btn2);
-
         {% if "teen" in user.valid_pkgs %}
         let btn3 = document.createElement("button");
         btn3.className="btn-blue";
