@@ -87,7 +87,7 @@ PACKAGE_LIST = {
     },
     "premium_month": {
         "name": "个人进阶会员(包月)",
-        "price": "¥25.00/月",
+        "price": "¥19.99/月",
         "desc": "全套反诈知识库，最高权限，包月",
         "cycle": "月付"
     }
