@@ -5,3 +5,4 @@ pillow
 rapidocr-onnxruntime
 itsdangerous
 python-multipart
+requests
