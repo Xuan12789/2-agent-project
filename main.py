@@ -412,7 +412,7 @@ def rag_search(query_text: str, pkg_code: str, top_k=3):
 
 import json
 import re
-import ollama
+#import ollama
 
 FRAUD_TYPE_LIST = [
     "刷单返利",
