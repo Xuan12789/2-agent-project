@@ -784,6 +784,13 @@ async def api_read_notice(request: Request, nid:int=Form("")):
     sess_user = request.session.get("user")
     if not sess_user:
         return RedirectResponse("/login",303)
+    user_text = user_text.strip()
+    if not user_text:
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "user": sess_user,
+            "err": "请输入需要核验的文本！"
+        })
     uid = sess_user["id"]
     conn = sqlite3.connect("user.db", check_same_thread=False)
     cur = conn.cursor()
@@ -1404,7 +1411,7 @@ async def user_risk_stat(request:Request):
     return {"code":0,"labels":labels,"data":data}
 
 if __name__ == "__main__":
-    from starlette.middleware.sessions import SessionMiddleware
-    app.add_middleware(SessionMiddleware, secret_key="demo‑secret‑key‑123456789")
+    #from starlette.middleware.sessions import SessionMiddleware
+    #app.add_middleware(SessionMiddleware, secret_key="demo‑secret‑key‑123456789")
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)

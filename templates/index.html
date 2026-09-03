@@ -170,7 +170,7 @@
             <!--免费版核验 -->
             <div class="box-card">
                 <h3>🆓个人免费版核验</h3>
-                <form action="/check" method="post">
+                <form action="/check" method="post" onsubmit="return checkSubmit(this)">
                     <input type="hidden" name="check_type" value="check_free">
                     <textarea name="user_text" placeholder="粘贴可疑理财、聊天文本"></textarea>
                     <br>
@@ -190,7 +190,7 @@
             <!--老年守护版核验 -->
             <div class="box-card">
                 <h3>👵老年守护版核验</h3>
-                <form action="/check" method="post">
+                <form action="/check" method="post" onsubmit="return checkSubmit(this)">
                     <input type="hidden" name="check_type" value="check_elder">
                     <textarea name="user_text" placeholder="针对老年人养老理财、保健品骗局检测"></textarea>
                     <br>
@@ -210,7 +210,7 @@
             <!--青少年守护版核验 -->
             <div class="box-card">
                 <h3>👦青少年财商守护核验</h3>
-                <form action="/check" method="post">
+                <form action="/check" method="post" onsubmit="return checkSubmit(this)">
                     <input type="hidden" name="check_type" value="check_teen">
                     <textarea name="user_text" placeholder="针对刷单、校园贷、游戏交易诈骗检测"></textarea>
                     <br>
@@ -230,7 +230,7 @@
             <!--家庭守护版核验 -->
             <div class="box-card">
                 <h3>👨‍👩‍👧家庭守护版核验</h3>
-                <form action="/check" method="post">
+                <form action="/check" method="post" onsubmit="return checkSubmit(this)">
                     <input type="hidden" name="check_type" value="check_family">
                     <textarea name="user_text" placeholder="家庭场景多人反诈风险文本检测"></textarea>
                     <br>
@@ -250,7 +250,7 @@
             <!--个人进阶会员核验 -->
             <div class="box-card" style="grid-column:1 / -1;">
                 <h3>⭐个人进阶会员核验</h3>
-                <form action="/check" method="post">
+                <form action="/check" method="post" onsubmit="return checkSubmit(this)">
                     <input type="hidden" name="check_type" value="check_premium">
                     <textarea name="user_text" placeholder="高级投资者骗局，配资、虚假私募、AI杀猪盘检测"></textarea>
                     <br>
@@ -321,6 +321,15 @@
     </div>
 
 <script>
+    function checkSubmit(formDom){
+    const ta = formDom.querySelector("textarea[name='user_text']");
+    const val = ta.value.trim();
+    if(!val){
+        alert("请输入需要核验的文本！");
+        return false; //阻止表单提交
+    }
+    return true;
+}
 //表单提交拿到的后台渲染变量
 {% if res_check_type %}
 const formCheckType = "{{ res_check_type }}";
