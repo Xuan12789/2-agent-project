@@ -10,8 +10,11 @@ import uuid
 import json
 from collections import Counter
 from datetime import datetime, timedelta
-import whisper
-from rapidocr_onnxruntime import RapidOCR
+
+#import whisper
+#from rapidocr_onnxruntime import RapidOCR
+
+
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
@@ -41,8 +44,8 @@ FRAUD_TYPE_STR = "、".join(FRAUD_TYPE_LIST)
 # =============================================================================
 
 # ========= 加载轻量模型（CPU） =========
-whisper_model = whisper.load_model("base", device="cpu")
-ocr_reader = RapidOCR()
+#whisper_model = whisper.load_model("base", device="cpu")
+#ocr_reader = RapidOCR()
 
 # ========= Ollama配置 =========
 #OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
@@ -849,7 +852,7 @@ async def check_text(request: Request, user_text: str = Form(...), check_type: s
         "res_bias": save_bias
     })
 
-@app.post("/api/upload_audio")
+'''@app.post("/api/upload_audio")
 async def api_upload_audio(request: Request, file: UploadFile = File(...), check_type: str = Form(...)):
     sess_user = request.session.get("user")
     if not sess_user:
@@ -1009,6 +1012,7 @@ async def api_upload_image(request: Request, file: UploadFile = File(...), check
     conn.commit()
     conn.close()
     return {"code": 0, "ocr_text": ocr_text, "fact": fact_res, "bias": save_bias}
+    '''
 
 # ====================== 人工客服模块开始 ======================
 @app.post("/api/create_chat_session")

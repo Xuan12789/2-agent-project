@@ -1,8 +1,9 @@
 fastapi
 uvicorn
 starlette
-pillow
-rapidocr-onnxruntime
 itsdangerous
 python-multipart
 requests
+reportlab
+python-dotenv
+openai
