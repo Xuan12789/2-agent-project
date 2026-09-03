@@ -19,11 +19,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from starlette.middleware.sessions import SessionMiddleware
 
 pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
 font_name = "STSong-Light"
 
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key-20260903-project")
 templates = Jinja2Templates(directory="templates")
 
 # ======================【全局：十类诈骗枚举清单，统一维护】======================
