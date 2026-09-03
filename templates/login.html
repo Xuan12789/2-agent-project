@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录 - 金融反诈纠偏平台</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body{
+            background-color: #f4f7fa;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .top-nav{
+            background-color: #194b97;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+        }
+        .logo{
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px 0;
+            margin-right: 40px;
+        }
+        .nav-menu a{
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            padding: 20px 24px;
+            font-size: 16px;
+        }
+        .nav-menu a:hover{
+            background-color: #143b79;
+        }
+        .user-info{
+            margin-left: auto;
+            color: #fff;
+        }
+        .user-info a{
+            color: #fff;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        .container{
+            padding: 60px 30px;
+            display: flex;
+            justify-content: center;
+        }
+        .login-card{
+            background: #ffffff;
+            width: 420px;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+        }
+        .login-card h2{
+            text-align: center;
+            margin-bottom: 25px;
+            color: #222;
+        }
+        .form-item{
+            margin-bottom: 18px;
+        }
+        .form-item label{
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 15px;
+        }
+        .form-item input{
+            width: 100%;
+            height: 46px;
+            border: 1px solid #ccd7e2;
+            border-radius: 8px;
+            padding: 0 14px;
+            font-size: 16px;
+        }
+        .btn-blue{
+            width: 100%;
+            height: 48px;
+            background-color: #194b97;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-blue:hover{
+            background-color: #143b79;
+        }
+        .tip{
+            margin-top: 15px;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .tip a{
+            color: #194b97;
+            text-decoration: none;
+        }
+        .msg{
+            color: #d93025;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="logo">金融反诈纠偏平台</div>
+        <div class="nav-menu">
+            <a href="/">首页</a>
+            <a href="/login">登录</a>
+            <a href="/register">注册</a>
+        </div>
+        <div class="user-info">
+            <a href="/">返回首页</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="login-card">
+            <h2>账号登录</h2>
+            {% if msg %}
+                <div class="msg">{{ msg }}</div>
+            {% endif %}
+            <form action="/login" method="post">
+                <div class="form-item">
+                    <label>用户名</label>
+                    <input type="text" name="username" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-item">
+                    <label>密码</label>
+                    <input type="password" name="password" placeholder="请输入密码" required>
+                </div>
+                <button class="btn-blue" type="submit">登录</button>
+            </form>
+            <div class="tip">
+                还没有账号？<a href="/register">立即注册</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

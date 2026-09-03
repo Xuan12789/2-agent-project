@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>会员套餐购买</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body{
+            background-color: #f4f7fa;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .top-nav{
+            background-color: #194b97;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+        }
+        .logo{
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px 0;
+            margin-right: 40px;
+        }
+        .nav-menu a{
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            padding: 20px 24px;
+            font-size: 16px;
+        }
+        .nav-menu a:hover{
+            background-color: #143b79;
+        }
+        .user-info{
+            margin-left: auto;
+            color: #fff;
+        }
+        .user-info a{
+            color: #fff;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        .container{
+            padding: 35px;
+        }
+        h2{
+            margin-bottom: 25px;
+            color: #222;
+        }
+        .pkg-wrap{
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 22px;
+        }
+        .pkg-card{
+            background: #fff;
+            padding: 26px 18px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border: 2px solid #e4ecf7;
+        }
+        .pkg-card h3{
+            color: #194b97;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        .pkg-card p{
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .pkg-card .price{
+            font-size: 24px;
+            color: #d93025;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .btn-blue{
+            padding: 10px 22px;
+            background-color: #194b97;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            margin:0 4px;
+        }
+        .btn-blue:hover{
+            background-color: #143b79;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="logo">金融反诈纠偏平台</div>
+        <div class="nav-menu">
+            <a href="/">文本核验</a>
+            <a href="/package">购买套餐</a>
+            <a href="/user_center">会员信息</a>
+        </div>
+        <div class="user-info">
+            <span>欢迎 {{user.username}}</span>
+            <a href="/logout">｜退出登录</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>选择你的反诈会员套餐</h2>
+
+        <div class="pkg-wrap">
+            <!--免费版：删掉form和按钮，只展示文字说明 -->
+            <div class="pkg-card">
+                <h3>免费版</h3>
+                <p>基础反诈知识库<br>注册账号自动拥有</p>
+                <div class="price">免费</div>
+                <p style="color:#287b28">✅注册账号自动获取，无需购买</p>
+            </div>
+
+            <div class="pkg-card">
+                <h3>老年守护单人包</h3>
+                <p>老年人反诈知识库<br>针对性防护</p>
+                <div class="price">¥88.00/年</div>
+                <form method="post" action="/pay">
+                    <input type="hidden" name="pkg" value="elder">
+                    <button class="btn-blue">选择套餐</button>
+                </form>
+            </div>
+
+            <div class="pkg-card">
+                <h3>青少年财商守护套餐</h3>
+                <p>青少年财商反诈防护知识库</p>
+                <div class="price">¥99.00/年</div>
+                <form method="post" action="/pay">
+                    <input type="hidden" name="pkg" value="teen">
+                    <button class="btn-blue">选择套餐</button>
+                </form>
+            </div>
+
+            <div class="pkg-card">
+                <h3>家庭守护套餐</h3>
+                <p>长辈+全家防护库<br>多人反诈保护</p>
+                <div class="price">¥129.00/年</div>
+                <form method="post" action="/pay">
+                    <input type="hidden" name="pkg" value="family">
+                    <button class="btn-blue">选择套餐</button>
+                </form>
+            </div>
+
+            <!--个人进阶会员：两个按钮，包月、包年 -->
+            <div class="pkg-card" style="grid-column: 2 / 4;">
+                <h3>个人进阶会员</h3>
+                <p>全套反诈知识库<br>最高权限</p>
+                <div>
+                    <form method="post" action="/pay" style="display:inline-block;">
+                        <input type="hidden" name="pkg" value="premium_year">
+                        <button class="btn-blue">包年 ¥198/年</button>
+                    </form>
+                    <form method="post" action="/pay" style="display:inline-block;">
+                        <input type="hidden" name="pkg" value="premium_month">
+                        <button class="btn-blue">包月 ¥25/月</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

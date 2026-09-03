@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>支付确认 - 金融反诈纠偏平台</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body{
+            background-color: #f4f7fa;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .top-nav{
+            background-color: #194b97;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+        }
+        .logo{
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px 0;
+            margin-right: 40px;
+        }
+        .nav-menu a{
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            padding: 20px 24px;
+            font-size: 16px;
+        }
+        .nav-menu a:hover{
+            background-color: #143b79;
+        }
+        .user-info{
+            margin-left: auto;
+            color: #fff;
+        }
+        .user-info a{
+            color: #fff;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        .container{
+            padding: 40px 30px;
+            display: flex;
+            justify-content: center;
+        }
+        .pay-card{
+            background: #ffffff;
+            width: 460px;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+        }
+        .pay-card h2{
+            text-align: center;
+            margin-bottom: 25px;
+            color: #222;
+        }
+        .package-info{
+            background-color: #f8f9fc;
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .package-info p{
+            margin: 10px 0;
+            font-size: 16px;
+            color: #555;
+        }
+        .package-info .price{
+            font-size: 28px;
+            color: #d93025;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .pay-method{
+            margin-bottom: 20px;
+        }
+        .pay-method label{
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-size: 15px;
+        }
+        .pay-method select,
+        .pay-method input{
+            width: 100%;
+            height: 46px;
+            border: 1px solid #ccd7e2;
+            border-radius: 8px;
+            padding: 0 14px;
+            font-size: 16px;
+        }
+        .qrcode-box{
+            text-align: center;
+            margin: 25px 0;
+        }
+        .qrcode-box img{
+            width: 180px;
+            height: 180px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .qrcode-box p{
+            margin-top: 10px;
+            color: #777;
+            font-size: 14px;
+        }
+        .btn-blue{
+            width: 100%;
+            height: 48px;
+            background-color: #194b97;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-blue:hover{
+            background-color: #143b79;
+        }
+        .back-tip{
+            margin-top: 15px;
+            text-align: center;
+        }
+        .back-tip a{
+            color: #194b97;
+            text-decoration: none;
+        }
+        .err-text{
+            color:red;
+            margin-bottom:12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="logo">金融反诈纠偏平台</div>
+        <div class="nav-menu">
+            <a href="/">文本核验</a>
+            <a href="/package">购买套餐</a>
+            <a href="/user_center">会员信息</a>
+        </div>
+        <div class="user-info">
+            <span>欢迎 {{user.username}}</span>
+            <a href="/logout">｜退出登录</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="pay-card">
+            <h2>确认支付</h2>
+            {% if err %}
+                <div class="err-text">{{err}}</div>
+            {% endif %}
+            <div class="package-info">
+                <p><strong>套餐名称：</strong>{{ pkg_name }}</p>
+                <p><strong>套餐说明：</strong>{{ pkg_desc }}</p>
+                <div class="price">{{ pkg_price }}</div>
+            </div>
+            <form action="/confirm_pay" method="post">
+                <input type="hidden" name="pkg" value="{{ pkg }}">
+                <input type="hidden" name="pkg_name" value="{{ pkg_name }}">
+                <input type="hidden" name="pkg_price" value="{{ pkg_price }}">
+
+                {% if pkg in ["elder","teen"] %}
+                <div class="pay-method">
+                    <label>填写绑定用户名（必填，只能填1个）</label>
+                    <input type="text" name="bind_usernames" placeholder="输入对方用户名" required>
+                </div>
+                {% elif pkg == "family" %}
+                <div class="pay-method">
+                    <label>绑定账号（至少1个，最多5个，多个用户名英文逗号分隔）</label>
+                    <input type="text" name="bind_usernames" placeholder="user1,user2" required>
+                </div>
+                {% else %}
+                <input type="hidden" name="bind_usernames" value="">
+                {% endif %}
+
+                <div class="pay-method">
+                    <label>选择支付方式</label>
+                    <select name="pay_method" required>
+                        <option value="">请选择支付方式</option>
+                        <option value="微信支付">微信支付</option>
+                        <option value="支付宝">支付宝</option>
+                        <option value="银行卡">银行卡支付</option>
+                    </select>
+                </div>
+                <div class="qrcode-box">
+                    <img src="https://p3-flow-image-sign.byteimg.com/tos-cn-i-a9rns2rl98/43111211.png" alt="支付二维码">
+                    <p>扫码完成支付后，点击下方确认支付</p>
+                </div>
+                <button class="btn-blue" type="submit">确认支付</button>
+            </form>
+            <div class="back-tip">
+                <a href="/package">返回套餐选择</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

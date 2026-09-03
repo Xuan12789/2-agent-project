@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>金融反诈纠偏平台</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei",sans-serif;
+        }
+        body{
+            background-color:#f4f7fa;
+            padding:0;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .top-nav{
+            background-color:#194b97;
+            display:flex;
+            align-items:center;
+            padding: 0 30px;
+        }
+        .logo{
+            color:#ffffff;
+            font-size:24px;
+            font-weight:bold;
+            padding:20px 0;
+            margin-right:40px;
+        }
+        .nav-menu a{
+            display:inline-block;
+            color:#fff;
+            text-decoration:none;
+            padding:20px 24px;
+            font-size:16px;
+            transition: 0.2s;
+        }
+        .nav-menu a:hover{
+            background-color:#143b79;
+        }
+        .user-info{
+            margin-left:auto;
+            color:#fff;
+        }
+        .user-info a{
+            color:#fff;
+            text-decoration:none;
+            margin:0 8px;
+        }
+        .container{
+            padding:30px;
+        }
+        .check-wrap{
+            display:grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap:24px;
+        }
+        .box-card{
+            background:#ffffff;
+            padding:24px;
+            border-radius:12px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+        }
+        .box-card h3{
+            color:#194b97;
+            margin-bottom:14px;
+        }
+        textarea{
+            width:100%;
+            height:140px;
+            border:1px solid #ccd7e2;
+            border-radius:8px;
+            padding:14px;
+            font-size:15px;
+            resize:vertical;
+        }
+        .btn-blue{
+            margin-top:14px;
+            padding:10px 24px;
+            background-color:#194b97;
+            color:white;
+            border:none;
+            border-radius:8px;
+            font-size:15px;
+            cursor:pointer;
+        }
+        .btn-blue:hover{
+            background-color:#143b79;
+        }
+        .upload-row{
+            margin-top:12px;
+            padding-top:10px;
+            border-top:1px solid #eee;
+        }
+        .result-area{
+            margin-top:28px;
+            white-space:pre-wrap;
+            background-color:#f8f9fc;
+            padding:22px;
+            border-radius:8px;
+            border-left: 5px solid #194b97;
+            line-height:1.8;
+        }
+        .disclaimer-text{
+            margin-top:12px;
+            color:#555;
+            font-size:14px;
+            white-space:pre-wrap;
+        }
+        .err{
+            color:red;
+            margin-top:12px;
+        }
+        .read-btn-wrap{
+            margin-top:10px;
+        }
+        /*弹窗样式 */
+        .modal-wrap{
+            display:none;
+            position:fixed;
+            top:0;left:0;
+            width:100%;height:100%;
+            background:rgba(0,0,0,0.4);
+            z-index:999;
+        }
+        .modal-box{
+            width:520px;
+            margin:80px auto;
+            background:#fff;
+            padding:24px;
+            border-radius:10px;
+        }
+        .modal-box input,.modal-box textarea{
+            width:100%;
+            margin:6px 0 12px;
+            padding:8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="logo">金融反诈纠偏平台</div>
+        <div class="nav-menu">
+            {% if user %}
+            <a href="/">文本核验</a>
+            <a href="/package">购买套餐</a>
+            <a href="/user_center">会员信息</a>
+            {% endif %}
+        </div>
+        <div class="user-info">
+            {% if user %}
+                <span>欢迎 {{user.username}}｜已拥有：{{ user.valid_pkgs | join('、') }}</span>
+                <a href="/logout">｜退出登录</a>
+            {% else %}
+                <a href="/login">登录</a>
+                <a href="/register">注册</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="container">
+        {% if not user %}
+        <div class="box-card">
+            <h3>请先登录后再使用核验功能</h3>
+            <p>登录后可以使用各类反诈文本检测工具</p>
+        </div>
+        {% else %}
+        <div class="check-wrap">
+            <!--免费版核验 -->
+            <div class="box-card">
+                <h3>🆓个人免费版核验</h3>
+                <form action="/check" method="post">
+                    <input type="hidden" name="check_type" value="check_free">
+                    <textarea name="user_text" placeholder="粘贴可疑理财、聊天文本"></textarea>
+                    <br>
+                    <button class="btn-blue" type="submit">提交免费核验</button>
+                </form>
+                <div class="upload-row">
+                    <input type="file" id="audio_free" accept=".mp3,.wav,.m4a">
+                    <button class="btn-blue" onclick="uploadFile('audio_free','check_free','audio')">上传语音检测</button>
+                    <br>
+                    <input type="file" id="img_free" accept=".jpg,.png,.jpeg">
+                    <button class="btn-blue" onclick="uploadFile('img_free','check_free','image')">上传图片检测</button>
+                    <br>
+                    <input type="file" id="vid_free" accept=".mp4">
+                    <button class="btn-blue" onclick="uploadFile('vid_free','check_free','video')">上传视频检测</button>
+                </div>
+            </div>
+            <!--老年守护版核验 -->
+            <div class="box-card">
+                <h3>👵老年守护版核验</h3>
+                <form action="/check" method="post">
+                    <input type="hidden" name="check_type" value="check_elder">
+                    <textarea name="user_text" placeholder="针对老年人养老理财、保健品骗局检测"></textarea>
+                    <br>
+                    <button class="btn-blue" type="submit">提交老年守护核验</button>
+                </form>
+                <div class="upload-row">
+                    <input type="file" id="audio_elder" accept=".mp3,.wav,.m4a">
+                    <button class="btn-blue" onclick="uploadFile('audio_elder','check_elder','audio')">上传语音检测</button>
+                    <br>
+                    <input type="file" id="img_elder" accept=".jpg,.png,.jpeg">
+                    <button class="btn-blue" onclick="uploadFile('img_elder','check_elder','image')">上传图片检测</button>
+                    <br>
+                    <input type="file" id="vid_elder" accept=".mp4">
+                    <button class="btn-blue" onclick="uploadFile('vid_elder','check_elder','video')">上传视频检测</button>
+                </div>
+            </div>
+            <!--青少年守护版核验 -->
+            <div class="box-card">
+                <h3>👦青少年财商守护核验</h3>
+                <form action="/check" method="post">
+                    <input type="hidden" name="check_type" value="check_teen">
+                    <textarea name="user_text" placeholder="针对刷单、校园贷、游戏交易诈骗检测"></textarea>
+                    <br>
+                    <button class="btn-blue" type="submit">提交青少年守护核验</button>
+                </form>
+                <div class="upload-row">
+                    <input type="file" id="audio_teen" accept=".mp3,.wav,.m4a">
+                    <button class="btn-blue" onclick="uploadFile('audio_teen','check_teen','audio')">上传语音检测</button>
+                    <br>
+                    <input type="file" id="img_teen" accept=".jpg,.png,.jpeg">
+                    <button class="btn-blue" onclick="uploadFile('img_teen','check_teen','image')">上传图片检测</button>
+                    <br>
+                    <input type="file" id="vid_teen" accept=".mp4">
+                    <button class="btn-blue" onclick="uploadFile('vid_teen','check_teen','video')">上传视频检测</button>
+                </div>
+            </div>
+            <!--家庭守护版核验 -->
+            <div class="box-card">
+                <h3>👨‍👩‍👧家庭守护版核验</h3>
+                <form action="/check" method="post">
+                    <input type="hidden" name="check_type" value="check_family">
+                    <textarea name="user_text" placeholder="家庭场景多人反诈风险文本检测"></textarea>
+                    <br>
+                    <button class="btn-blue" type="submit">提交家庭守护核验</button>
+                </form>
+                <div class="upload-row">
+                    <input type="file" id="audio_family" accept=".mp3,.wav,.m4a">
+                    <button class="btn-blue" onclick="uploadFile('audio_family','check_family','audio')">上传语音检测</button>
+                    <br>
+                    <input type="file" id="img_family" accept=".jpg,.png,.jpeg">
+                    <button class="btn-blue" onclick="uploadFile('img_family','check_family','image')">上传图片检测</button>
+                    <br>
+                    <input type="file" id="vid_family" accept=".mp4">
+                    <button class="btn-blue" onclick="uploadFile('vid_family','check_family','video')">上传视频检测</button>
+                </div>
+            </div>
+            <!--个人进阶会员核验 -->
+            <div class="box-card" style="grid-column:1 / -1;">
+                <h3>⭐个人进阶会员核验</h3>
+                <form action="/check" method="post">
+                    <input type="hidden" name="check_type" value="check_premium">
+                    <textarea name="user_text" placeholder="高级投资者骗局，配资、虚假私募、AI杀猪盘检测"></textarea>
+                    <br>
+                    <button class="btn-blue" type="submit">提交进阶会员核验</button>
+                </form>
+                <div class="upload-row">
+                    <input type="file" id="audio_premium" accept=".mp3,.wav,.m4a">
+                    <button class="btn-blue" onclick="uploadFile('audio_premium','check_premium','audio')">上传语音检测</button>
+                    <br>
+                    <input type="file" id="img_premium" accept=".jpg,.png,.jpeg">
+                    <button class="btn-blue" onclick="uploadFile('img_premium','check_premium','image')">上传图片检测</button>
+                    <br>
+                    <input type="file" id="vid_premium" accept=".mp4">
+                    <button class="btn-blue" onclick="uploadFile('vid_premium','check_premium','video')">上传视频检测</button>
+                </div>
+            </div>
+        </div>
+        {% if err %}
+            <div class="err">{{err}}</div>
+        {% endif %}
+        {% if result %}
+            <div class="result-area">{{result}}</div>
+            <div class="disclaimer-text">
+——————————————————————————————
+本 APP 信息仅供参考，不构成任何投资建议，据此操作风险自担。
+            </div>
+            <div style="margin:10px 0;">
+                {% if res_check_type == "check_elder" %}
+                    <button id="readVoiceBtn" class="btn-blue" onclick="speakResult()">朗读核验内容</button>
+                {% endif %}
+                {% if res_check_type != "check_free" %}
+                <button class="btn-blue" onclick="openChatFromForm()">请求人工核验</button>
+                {% endif %}
+                <button class="btn-blue" onclick="openAppeal()">人工申诉通道</button>
+                {% if "teen" in user.valid_pkgs %}
+                    <button class="btn-blue" onclick="openExportPdfModal()">一键导出维权举报PDF</button>
+                {% endif %}
+            </div>
+        {% endif %}
+        <div id="uploadResult" class="result-area" style="display:none;"></div>
+        <div id="uploadDisclaimer" class="disclaimer-text" style="display:none;">
+——————————————————————————————
+本 APP 信息仅供参考，不构成任何投资建议，据此操作风险自担。
+        </div>
+        <div class="read-btn-wrap">
+            <button id="readVoiceBtnUpload" class="btn-blue" style="display:none;" onclick="speakUploadResult()">朗读核验内容</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!--导出PDF弹窗 -->
+    <div id="exportModal" class="modal-wrap">
+        <div class="modal-box">
+            <h3>填写维权举报补充信息</h3>
+            <label>涉案金额：</label>
+            <input type="text" id="ev_case_money" placeholder="例如：20000元">
+            <label>对方账号信息：</label>
+            <input type="text" id="ev_fraud_account" placeholder="对方微信/QQ/手机号">
+            <label>事件时间线描述：</label>
+            <textarea id="ev_timeline" rows="3" placeholder="简述被骗经过时间线"></textarea>
+            <label>证据清单勾选内容：</label>
+            <textarea id="ev_evidence" rows="2" placeholder="聊天记录、转账截图、录音等"></textarea>
+            <div>
+                <button class="btn-blue" onclick="submitExportPdf()">生成并下载PDF</button>
+                <button class="btn-blue" onclick="closeExportModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+//表单提交拿到的后台渲染变量
+{% if res_check_type %}
+const formCheckType = "{{ res_check_type }}";
+const formInputText = {{ res_input_text | tojson }};
+const formFact = {{ res_fact | tojson }};
+const formBias = {{ res_bias | tojson }};
+{% else %}
+const formCheckType = null;
+const formInputText = "";
+const formFact = "";
+const formBias = "";
+{% endif %}
+let lastReadText = "";
+let uploadReadText = "";
+let uploadOriginText = "";
+let uploadFactText = "";
+
+//表单提交-朗读
+function speakResult(){
+    if(!window.speechSynthesis){
+        alert("你的浏览器不支持语音朗读");
+        return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(document.querySelector(".result-area").innerText);
+    utter.lang = "zh-CN";
+    utter.rate = 0.95;
+    window.speechSynthesis.speak(utter);
+}
+//上传文件-朗读
+function speakUploadResult(){
+    if(!window.speechSynthesis){
+        alert("你的浏览器不支持语音朗读");
+        return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(uploadReadText);
+    utter.lang = "zh-CN";
+    utter.rate = 0.95;
+    window.speechSynthesis.speak(utter);
+}
+
+//【普通人工核验 正常工单 normal】
+async function openChatFromForm(){
+    let fd=new FormData();
+    fd.append("check_type",formCheckType);
+    fd.append("origin_input",formInputText);
+    fd.append("media_text","");
+    fd.append("fact_result",formFact);
+    fd.append("bias_result",formBias);
+    fd.append("session_type","normal");
+    let resp=await fetch("/api/create_chat_session",{method:"POST",body:fd});
+    let d=await resp.json();
+    if(d.code===0){
+        window.open(`/user_chat?session_id=${d.session_id}`,"_blank");
+    }
+}
+
+//【人工申诉通道 appeal 申诉工单】
+async function openAppeal(){
+    let fd=new FormData();
+    fd.append("check_type",formCheckType);
+    fd.append("origin_input",formInputText);
+    fd.append("media_text","");
+    fd.append("fact_result",formFact);
+    fd.append("bias_result",formBias);
+    fd.append("session_type","appeal");
+    let resp=await fetch("/api/create_chat_session",{method:"POST",body:fd});
+    let d=await resp.json();
+    if(d.code===0){
+        window.open(`/user_chat?session_id=${d.session_id}`,"_blank");
+    }
+}
+
+//导出维权PDF弹窗
+function openExportPdfModal(){
+    document.getElementById("exportModal").style.display="block";
+}
+function closeExportModal(){
+    document.getElementById("exportModal").style.display="none";
+}
+async function submitExportPdf(){
+    const caseMoney = document.getElementById("ev_case_money").value;
+    const fraudAccount = document.getElementById("ev_fraud_account").value;
+    const timeline = document.getElementById("ev_timeline").value;
+    const evidence = document.getElementById("ev_evidence").value;
+    let fd=new FormData();
+    fd.append("origin_input", formInputText);
+    fd.append("fact_result", formFact);
+    fd.append("case_money",caseMoney);
+    fd.append("fraud_account",fraudAccount);
+    fd.append("timeline",timeline);
+    fd.append("evidence_list",evidence);
+    const resp=await fetch("/api/export_report_pdf",{method:"POST",body:fd});
+    if(resp.ok){
+        const blob=await resp.blob();
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download="反诈维权举报材料.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        closeExportModal();
+    }else{
+        alert("导出失败");
+    }
+}
+
+async function uploadFile(fileDomId, ctype, mode){
+    const fileInput = document.getElementById(fileDomId);
+    const file = fileInput.files[0];
+    const readBtnUpload = document.getElementById("readVoiceBtnUpload");
+    const uploadDisclaimerDom = document.getElementById("uploadDisclaimer");
+    uploadReadText = "";
+    uploadOriginText = "";
+    uploadFactText = "";
+    readBtnUpload.style.display = "none";
+    uploadDisclaimerDom.style.display="none";
+    if(!file){
+        alert("请选择文件");
+        return;
+    }
+    let url;
+    if(mode==="audio") url="/api/upload_audio";
+    else if(mode==="image") url="/api/upload_image";
+    else if(mode==="video") url="/api/upload_video";
+    const fd = new FormData();
+    fd.append("file",file);
+    fd.append("check_type",ctype);
+    const resDom = document.getElementById("uploadResult");
+    resDom.style.display="block";
+    resDom.innerText = "正在解析文件，请稍候……";
+    try{
+        const resp = await fetch(url,{method:"POST",body:fd});
+        const data = await resp.json();
+        if(data.code !== 0){
+            resDom.innerText="错误："+data.msg;
+            if(data.redirect_url){
+                window.location.href = data.redirect_url;
+            }
+            return;
+        }
+        let out = "";
+        let mediaText = "";
+        if(data.transcript){
+            out+="识别文本：\n"+data.transcript+"\n\n";
+            mediaText = data.transcript;
+        }
+        if(data.ocr_text){
+            out+="OCR识别文字：\n"+data.ocr_text+"\n\n";
+            mediaText = data.ocr_text;
+        }
+        out += "=====事实核验结果=====\n"+data.fact;
+        if(data.bias && data.bias.trim()!=""){
+            out += "\n\n=====心理纠偏分析=====\n"+data.bias;
+        }
+        resDom.innerText = out;
+        uploadReadText = out;
+        uploadOriginText = mediaText;
+        uploadFactText = data.fact;
+        uploadDisclaimerDom.style.display="block";
+        //老年版才出现朗读按钮
+        if(ctype === "check_elder"){
+            readBtnUpload.style.display = "inline-block";
+        }
+        //两个按钮：请求人工核验、人工申诉通道
+        if(ctype !== "check_free"){
+            let btn1 = document.createElement("button");
+            btn1.className="btn-blue";
+            btn1.style.marginLeft="10px";
+            btn1.innerText="请求人工核验";
+            btn1.onclick = async function(){
+                let form = new FormData();
+                form.append("check_type",ctype);
+                form.append("origin_input","媒体文件上传核验");
+                form.append("media_text",mediaText);
+                form.append("fact_result",data.fact);
+                form.append("bias_result", data.bias ? data.bias : "");
+                form.append("session_type","normal");
+                let r = await fetch("/api/create_chat_session",{method:"POST",body:form});
+                let resData = await r.json();
+                if(resData.code===0){
+                    window.open(`/user_chat?session_id=${resData.session_id}`,"_blank");
+                }
+            }
+            resDom.after(btn1);
+        }
+
+        let btn2 = document.createElement("button");
+        btn2.className="btn-blue";
+        btn2.style.marginLeft="10px";
+        btn2.innerText="人工申诉通道";
+        btn2.onclick = async function(){
+            let form = new FormData();
+            form.append("check_type",ctype);
+            form.append("origin_input","媒体文件上传核验");
+            form.append("media_text",mediaText);
+            form.append("fact_result",data.fact);
+            form.append("bias_result", data.bias ? data.bias : "");
+            form.append("session_type","appeal");
+            let r = await fetch("/api/create_chat_session",{method:"POST",body:form});
+            let resData = await r.json();
+            if(resData.code===0){
+                window.open(`/user_chat?session_id=${resData.session_id}`,"_blank");
+            }
+        }
+        resDom.after(btn2);
+
+        {% if "teen" in user.valid_pkgs %}
+        let btn3 = document.createElement("button");
+        btn3.className="btn-blue";
+        btn3.style.marginLeft="10px";
+        btn3.innerText="一键导出维权举报PDF";
+        btn3.onclick=function(){
+            openExportPdfModal();
+        }
+        resDom.after(btn3);
+        {% endif %}
+    }catch(e){
+        resDom.innerText="请求异常："+e;
+    }
+}
+</script>
+</body>
+</html>

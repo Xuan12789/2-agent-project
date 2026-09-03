@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>校园贷还款计算器</title>
+    <style>
+        *{font-family:"Microsoft Yahei";box-sizing:border-box;}
+        body{max-width:700px;margin:30px auto;padding:0 20px;}
+        .card{background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+        h2{color:#194b97;margin-bottom:20px;}
+        .item{margin:12px 0;}
+        label{display:inline-block;width:120px;}
+        input,select{padding:8px;width:300px;font-size:15px;}
+        button{padding:9px 22px;background:#194b97;color:white;border:none;border-radius:6px;cursor:pointer;}
+        button:hover{background:#143b79;}
+        .result-box{margin-top:20px;padding:16px;background:#f4f7fa;border-radius:8px;}
+        .warn{color:red;font-weight:bold;margin-top:10px;}
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>🎓校园贷还款计算器（青少年守护套餐专属）</h2>
+    <p><a href="/user_center">← 返回个人中心</a></p>
+    <form id="calcForm">
+        <div class="item">
+            <label>本金(元)：</label>
+            <input type="number" step="0.01" name="principal" placeholder="例如 10000" required>
+        </div>
+        <div class="item">
+            <label>年利率(%)：</label>
+            <input type="number" step="0.01" name="annual_rate" placeholder="例如 15.6" required>
+        </div>
+        <div class="item">
+            <label>还款期数(月)：</label>
+            <input type="number" min="1" name="months" placeholder="例如 12" required>
+        </div>
+        <div class="item">
+            <label>还款方式：</label>
+            <select name="repay_type">
+                <option value="equal_principal_interest">等额本息（每月还款金额相同）</option>
+                <option value="equal_principal">等额本金（每月本金相同）</option>
+                <option value="one_time">到期一次性还本付息</option>
+            </select>
+        </div>
+        <div class="item">
+            <button type="submit">开始计算</button>
+        </div>
+    </form>
+    <div id="resultBox" class="result-box" style="display:none;">
+        <h4>📊计算结果</h4>
+        <p>总还款金额：<span id="totalPay"></span> 元</p>
+        <p>总支付利息：<span id="totalInterest"></span> 元</p>
+        <p class="warn">⚠高额利息的校园贷属于高风险贷款，请提高警惕，切勿借贷。</p>
+    </div>
+</div>
+
+<script>
+document.getElementById("calcForm").onsubmit=async e=>{
+    e.preventDefault();
+    const fd=new FormData(e.target);
+    const resp=await fetch("/api/calc_campus_loan",{method:"POST",body:fd});
+    const data=await resp.json();
+    if(data.code===0){
+        document.getElementById("resultBox").style.display="block";
+        document.getElementById("totalPay").innerText=data.total_pay;
+        document.getElementById("totalInterest").innerText=data.total_interest;
+    }else{
+        alert(data.msg);
+    }
+}
+</script>
+</body>
+</html>

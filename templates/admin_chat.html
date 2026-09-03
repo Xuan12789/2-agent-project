@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>客服人工核验工作台</title>
+<style>
+*{font-family:Microsoft Yahei;}
+body{display:flex;gap:16px;padding:20px;max-width:1400px;margin:0 auto;}
+.left{width:320px;border-right:1px solid #aaa;padding-right:12px;}
+.right{flex-grow:1;}
+.session-item{border:1px solid #ccc;padding:8px;margin:6px 0;border-radius:4px;cursor:pointer;}
+.session-item:hover{background:#e8f0ff;}
+.origin-info{background:#eef4ff;padding:12px;border-radius:8px;margin-bottom:12px;font-size:14px;}
+.chat-box{border:1px solid #aaa;height:480px;overflow-y:auto;padding:10px;border-radius:8px;margin-bottom:10px;}
+.msg-user{background:#d8ecff;padding:7px 10px;margin:5px 0;border-radius:6px;max-width:72%;margin-left:auto;}
+.msg-admin{background:#e8e8e8;padding:7px 10px;margin:5px 0;border-radius:6px;max-width:72%;margin-right:auto;}
+textarea{width:100%;height:85px;box-sizing:border-box;padding:10px;}
+button{padding:8px 16px;cursor:pointer;margin-top:6px;}
+.tag-appeal{color:red;font-weight:bold;}
+.tag-normal{color:#222;}
+</style>
+</head>
+<body>
+<div class="left">
+<h3>用户会话列表</h3>
+{% for s in session_list %}
+    <div class="session-item" onclick="location.href='/admin_chat?select_session={{s[0]}}'">
+        <div>会话ID:{{s[0]}}｜用户：{{s[1]}}</div>
+        <div>
+            {% if s[4] == "appeal" %}
+                <span class="tag-appeal">🔴申诉工单（人工申诉）</span>
+            {% else %}
+                <span class="tag-normal">普通核验咨询</span>
+            {% endif %}
+            ｜{{s[3]}}
+        </div>
+    </div>
+{% endfor %}
+</div>
+<div class="right">
+{% if selected_session_data %}
+    <h3>当前会话 ID：{{select_session}}</h3>
+    <div class="origin-info">
+        <b>会话类型：</b>
+        {% if selected_session_data[7] == "appeal" %}
+            <span style="color:red;font-weight:bold;">🔴申诉工单（人工申诉）</span>
+        {% else %}
+            普通核验咨询
+        {% endif %}
+        <br>
+        <b>用户提交的AI核验原始资料</b><br>
+        核验类型：{{selected_session_data[2]}}<br>
+        用户原始输入：{{selected_session_data[3]}}<br>
+        媒体识别文本：{{selected_session_data[4]}}<br>
+        AI事实核验结果：{{selected_session_data[5]}}<br>
+        AI心理纠偏：{{selected_session_data[6]}}
+    </div>
+    <div class="chat-box" id="chatBox">
+        {% for m in msg_list %}
+            {% if m[0]=="user" %}
+                <div class="msg-user">用户：{{m[1]}}</div>
+            {% else %}
+                <div class="msg-admin">客服：{{m[1]}}</div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <textarea id="adminInput" placeholder="客服输入回复消息"></textarea>
+    <br>
+    <button onclick="sendAdminMsg()">发送客服回复</button>
+{% else %}
+    <div>请在左侧点击一条用户会话，打开对话</div>
+{% endif %}
+</div>
+<script>
+const sid = {{ select_session | default(0, true) | int }};
+async function sendAdminMsg(){
+    if(!sid) return;
+    const val = document.getElementById("adminInput").value.trim();
+    if(!val) return;
+    const fd=new FormData();
+    fd.append("session_id",sid);
+    fd.append("content",val);
+    await fetch("/api/admin_send_msg",{method:"POST",body:fd});
+    document.getElementById("adminInput").value="";
+    location.reload();
+}
+</script>
+</body>
+</html>

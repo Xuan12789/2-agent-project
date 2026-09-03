@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>个人中心</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        *{font-family:Microsoft Yahei;box-sizing:border-box;}
+        body{max-width:1200px;margin:20px auto;padding:0 20px;}
+        .block{background:#fff;padding:18px;border-radius:8px;margin-bottom:20px;box-shadow:0 1px 8px rgba(0,0,0,0.08);}
+        table{width:100%;border-collapse:collapse;margin:10px 0;}
+        th,td{border:1px solid #ddd;padding:8px;text-align:left;vertical-align:top;}
+        th{background:#f4f7fa;}
+        .red{color:red;}
+        button{padding:6px 12px;cursor:pointer;}
+        input{padding:7px;width:280px;}
+        .error-tip{
+            background:#ffe8e8;
+            color:#c82423;
+            padding:12px;
+            border-radius:8px;
+            margin-bottom:15px;
+            border:1px solid #ffc9c9;
+        }
+        .bind-card{
+            margin:10px 0;padding:14px;background:#f0f6ff;border-radius:8px;
+        }
+        .tip-disable{color:#777;}
+        #riskChart{width:100%;height:400px;}
+    </style>
+</head>
+<body>
+<h1>个人中心</h1>
+<p>欢迎 {{user.username}}</p>
+<p><a href="/">回到首页</a>｜<a href="/logout">退出登录</a></p>
+{% if err_msg %}
+<div class="error-tip">
+    {{ err_msg }}
+</div>
+{% endif %}
+{% set is_premium = ("premium_month" in user.valid_pkgs) or ("premium_year" in user.valid_pkgs) %}
+{% if "teen" in user.valid_pkgs %}
+<div class="block">
+    <h3>🎓青少年专属工具</h3>
+    <p>你拥有青少年守护套餐，可以使用校园贷还款计算器</p>
+    <p><a href="/teen_calc">👉 打开校园贷还款计算器</a></p>
+</div>
+{% endif %}
+{% if is_premium %}
+<div class="block">
+    <h3>📊个人风险画像（进阶会员专属，诈骗类型分布统计）</h3>
+    <div id="riskChart"></div>
+</div>
+{% endif %}
+<div class="block">
+    <h3>🔔系统提醒消息</h3>
+    {% if not notice_list %}
+        <p>暂无提醒消息</p>
+    {% else %}
+    <table>
+        <tr>
+            <th>消息内容</th>
+            <th>时间</th>
+            <th>操作</th>
+        </tr>
+        {% for n in notice_list %}
+        <tr>
+            <td {% if n[2]==0 %}class="red"{% endif %}>{{n[1]}}</td>
+            <td>{{n[3]}}</td>
+            <td>
+                {% if n[2]==0 %}
+                <form method="post" action="/api/read_notice" style="display:inline;">
+                    <input type="hidden" name="nid" value="{{n[0]}}">
+                    <button type="submit">标记已读</button>
+                </form>
+                {% else %}已读{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</div>
+<div class="block">
+    <h3>🔗我购买套餐绑定的账号（我是主账号）</h3>
+    <p>提示：解除绑定只会取消对方共享权限，<strong>您自己购买的套餐不受影响</strong>。被解绑账号将不再可以使用本套餐。</p>
+    <div class="bind-card">
+        <h4>👵老年守护版（上限1人）</h4>
+        {% if is_elder_owner %}
+            {% set elder_bind = bind_list | selectattr("2","eq","elder") | list %}
+            {% if elder_bind %}
+            <table>
+                <tr><th>绑定用户名</th><th>操作</th></tr>
+                {% for b in elder_bind %}
+                <tr>
+                    <td>{{b[1]}}</td>
+                    <td>
+                        <form method="post" action="/api/unbind_account" style="display:inline;">
+                            <input type="hidden" name="bind_id" value="{{b[0]}}">
+                            <button type="submit" onclick="return confirm('确认解除绑定？')">解除绑定</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>尚未绑定账号</p>
+            <form action="/api/add_family_bind" method="post">
+                <input type="hidden" name="bind_target_type" value="elder">
+                <input type="text" name="new_bind_username" placeholder="填写需要绑定的用户名" required>
+                <button type="submit">确认绑定老年版账号</button>
+            </form>
+            {% endif %}
+        {% else %}
+            <p class="tip-disable">⚠您不是老年守护版套餐购买主账号，无绑定权限。</p>
+        {% endif %}
+    </div>
+    <div class="bind-card">
+        <h4>👦青少年守护版（上限1人）</h4>
+        {% if is_teen_owner %}
+            {% set teen_bind = bind_list | selectattr("2","eq","teen") | list %}
+            {% if teen_bind %}
+            <table>
+                <tr><th>绑定用户名</th><th>操作</th></tr>
+                {% for b in teen_bind %}
+                <tr>
+                    <td>{{b[1]}}</td>
+                    <td>
+                        <form method="post" action="/api/unbind_account" style="display:inline;">
+                            <input type="hidden" name="bind_id" value="{{b[0]}}">
+                            <button type="submit" onclick="return confirm('确认解除绑定？')">解除绑定</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>尚未绑定账号</p>
+            <form action="/api/add_family_bind" method="post">
+                <input type="hidden" name="bind_target_type" value="teen">
+                <input type="text" name="new_bind_username" placeholder="填写需要绑定的用户名" required>
+                <button type="submit">确认绑定青少年版账号</button>
+            </form>
+            {% endif %}
+        {% else %}
+            <p class="tip-disable">⚠您不是青少年守护版套餐购买主账号，无绑定权限。</p>
+        {% endif %}
+    </div>
+    <div class="bind-card">
+        <h4>👨‍👩‍👧家庭守护版（上限5人）</h4>
+        {% if is_family_owner %}
+            {% set family_bind = bind_list | selectattr("2","eq","family") | list %}
+            {% if family_bind %}
+            <table>
+                <tr><th>绑定用户名</th><th>操作</th></tr>
+                {% for b in family_bind %}
+                <tr>
+                    <td>{{b[1]}}</td>
+                    <td>
+                        <form method="post" action="/api/unbind_account" style="display:inline;">
+                            <input type="hidden" name="bind_id" value="{{b[0]}}">
+                            <button type="submit" onclick="return confirm('确认解除绑定？')">解除绑定</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% endif %}
+            {% set cnt_family = family_bind | length %}
+            <p>已绑定 {{cnt_family}} / 5</p>
+            {% if cnt_family <5 %}
+            <form action="/api/add_family_bind" method="post">
+                <input type="hidden" name="bind_target_type" value="family">
+                <input type="text" name="new_bind_username" placeholder="填写需要绑定的用户名" required>
+                <button type="submit">确认绑定家庭版账号</button>
+            </form>
+            {% endif %}
+        {% else %}
+            <p class="tip-disable">⚠您不是家庭守护版套餐购买主账号，无绑定权限。</p>
+        {% endif %}
+    </div>
+</div>
+<div class="block">
+    <h3>📥别人共享给我的套餐（我为被绑定账号）</h3>
+    {% if be_bind_list %}
+    <table>
+        <tr>
+            <th>套餐购买主账号</th>
+            <th>共享套餐类型</th>
+        </tr>
+        {% for item in be_bind_list %}
+        <tr>
+            <td>{{item[1]}}</td>
+            <td>{{item[2]}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p>提示：套餐由上面主账号购买，<strong>解绑操作需要由套餐主账号执行</strong>，您无法解除绑定。</p>
+    {% else %}
+    <p>暂无其他账号共享套餐给您</p>
+    {% endif %}
+</div>
+<div class="block">
+    <h3>✅我自己已购买套餐</h3>
+    <table>
+        <tr>
+            <th>套餐名称</th>
+            <th>购买时间</th>
+            <th>到期时间</th>
+        </tr>
+        {% for p in user_packages %}
+        <tr>
+            <td>{{p[1]}}</td>
+            <td>{{p[2]}}</td>
+            <td>{{p[3]}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<div class="block">
+    <h3>📝检测历史记录</h3>
+    <table>
+        <tr>
+            <th>诈骗类型</th>
+            <th>风险等级</th>
+            <th>用户输入内容</th>
+            <th>事实核验结果</th>
+            <th>心理纠偏分析</th>
+            <th>核验时间</th>
+            {% if is_premium %}
+            <th>操作</th>
+            {% endif %}
+        </tr>
+        {% for h in history %}
+        <tr>
+            <td>{{h[5] if h[5] else "未识别"}}</td>
+            <td>{{h[6] if h[6] else "未判定"}}</td>
+            <td style="max-width:260px;word-break:break-all;">{{h[1]}}</td>
+            <td style="max-width:320px;white-space:pre-wrap;">{{h[3]}}</td>
+            <td style="max-width:320px;white-space:pre-wrap;">{{h[4]}}</td>
+            <td>{{h[7]}}</td>
+            {% if is_premium %}
+            <td>
+                <button onclick="downloadFullReport({{h[0]}})">导出正式完整PDF报告</button>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<div class="block">
+    <h3>🧾订单记录</h3>
+    <table>
+        <tr>
+            <th>套餐</th>
+            <th>价格</th>
+            <th>支付方式</th>
+            <th>购买时间</th>
+            <th>到期时间</th>
+        </tr>
+        {% for o in order_list %}
+        <tr>
+            <td>{{o[0]}}</td>
+            <td>{{o[1]}}</td>
+            <td>{{o[2]}}</td>
+            <td>{{o[3]}}</td>
+            <td>{{o[4]}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<script>
+var isPremium = {{ "true" if is_premium else "false" }};
+if(isPremium){
+    var myChart = echarts.init(document.getElementById('riskChart'));
+    fetch("/api/user_risk_stat")
+    .then(r=>r.json())
+    .then(res=>{
+        if(res.code===0){
+            let opt={
+                title:{
+                    text:"个人遇到诈骗类型分布统计",
+                    left:"center",
+                    top:10
+                },
+                tooltip:{trigger:'item'},
+                legend:{
+                    orient:'vertical',
+                    right:15,
+                    top:'center'
+                },
+                series:[{
+                    type:'pie',
+                    radius:'65%',
+                    center:['42%','50%'],
+                    data: res.labels.map((lab,i)=>({name:lab,value:res.data[i]}))
+                }]
+            };
+            myChart.setOption(opt);
+        }
+    })
+}
+async function downloadFullReport(hid){
+    let fd=new FormData();
+    fd.append("history_id",hid);
+    let resp=await fetch("/api/export_full_report",{method:"POST",body:fd});
+    if(resp.redirected){
+        window.location.href=resp.url;
+        return;
+    }
+    const blob=await resp.blob();
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="反诈正式报告.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+</script>
+</body>
+</html>
