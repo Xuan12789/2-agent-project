@@ -7,3 +7,4 @@ requests
 reportlab
 python-dotenv
 openai
+jinja2
